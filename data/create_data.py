@@ -1,4 +1,5 @@
 import random
+import csv
 
 def create_vocab(size):
     vocab = {x : [] for x in ['N', 'A']}
@@ -17,6 +18,9 @@ def create_vocab(size):
     return vocab
 
 def create_data(vocab, size, num_adj):
+    if size % 5 != 0:
+        raise ValueError('Size must be a multiple of 5!')
+
     data = []
     while len(data) < (8 * size):
         theme_noun = random.choice(vocab['N'])
@@ -47,11 +51,20 @@ def create_data(vocab, size, num_adj):
                     data.append(f'the a gave the {recipient} the {theme}')
                 else:
                     data.append(f'the a gave the {theme} to the {recipient}')
+    with open(f'{num_adj}/train.txt', 'w') as f:
+        for s in data[0:int(8 * 0.8 * size)]:
+            f.write(s + ' <eos>\n')
+        f.write('<unk>')
+    with open(f'{num_adj}/test.txt', 'w') as f:
+        for s in data[int(8 * 0.8 * size):int(8 * 0.9 * size)]:
+            f.write(s + ' <eos>\n')
+        f.write('<unk>')
+    with open(f'{num_adj}/valid.txt', 'w') as f:
+        for s in data[int(8 * 0.9 * size):]:
+            f.write(s + ' <eos>\n')
+        f.write('<unk>')
 
-    data_dict = {i : [] for i in range(0, size)}
-    j = -1
-    for i, x in enumerate(data):
-        if i % 8 == 0:
-            j += 1
-        data_dict[j].append(x.split())
-    return data_dict
+vocab = create_vocab(1000)
+for num_adj in range(1, 5):
+    print(num_adj)
+    create_data(vocab, 500, num_adj)
